@@ -15,6 +15,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#071C12;color:#E2F5E
 .logo-box img{width:46px;height:46px;object-fit:contain;mix-blend-mode:lighten;display:block}
 .brand-text .sub{font-size:10px;font-weight:700;letter-spacing:3px;color:#4ADE80;text-transform:uppercase;margin-bottom:2px}
 .brand-text .title{font-size:18px;font-weight:800;color:#F0FDF4}
+.conjunto-name{font-size:13px;font-weight:600;color:#4ADE80;margin-top:2px;cursor:pointer;display:flex;align-items:center;gap:5px}
+.conjunto-name span{border-bottom:1px dashed #2D6A3F}
+.conjunto-input{background:#071C12;border:1px solid #2D6A3F;border-radius:7px;color:#F0FDF4;font-size:13px;font-weight:600;padding:3px 8px;outline:none;font-family:inherit;width:180px}
 .btns{display:flex;gap:5px;flex-wrap:wrap;justify-content:flex-end}
 .btn{border:none;border-radius:10px;padding:7px 11px;font-size:12px;font-weight:700;cursor:pointer;font-family:inherit;transition:all .15s}
 .btn-ghost{background:#163D25;border:1px solid #22C55E30;color:#86EFAC}
@@ -136,6 +139,9 @@ body{font-family:'Segoe UI',system-ui,sans-serif;background:#071C12;color:#E2F5E
         <div class="brand-text">
           <div class="sub">Propiedad Horizontal</div>
           <div class="title">Adm. Provisional</div>
+          <div class="conjunto-name" onclick="editConjunto()" id="conjuntoDisplay">
+            <span id="conjuntoText">Toca para agregar nombre del conjunto</span> ✏️
+          </div>
         </div>
       </div>
       <div class="btns">
@@ -203,6 +209,7 @@ const COLORS=['#22C55E','#3B82F6','#F59E0B','#8B5CF6','#06B6D4','#EF4444','#F973
 const ICONS=['🔑','📋','⚙️','🤝','🏁','📁','📌','✅','🏗️','💼','📊','🔔','📞','📝','🔧','🏢'];
 const KEY='vp_provisional_v2';
 const uid=()=>Math.random().toString(36).slice(2,9);
+let conjuntoName='';
 
 const DEF=[
   {id:'s1',title:'Apertura',icon:'🔑',color:'#22C55E',items:[
@@ -252,8 +259,10 @@ function load(){
       document.getElementById('entInput').value=d.entDate||'';
       document.getElementById('asmTbd').checked=!!d.asmTbd;
       document.getElementById('entTbd').checked=!!d.entTbd;
+      conjuntoName=d.conjuntoName||'';
     } else stages=JSON.parse(JSON.stringify(DEF));
   }catch{stages=JSON.parse(JSON.stringify(DEF));}
+  updateConjuntoDisplay();
   updateDates();render();
 }
 
@@ -264,9 +273,37 @@ function saveState(){
       asmDate:document.getElementById('asmInput').value,
       entDate:document.getElementById('entInput').value,
       asmTbd:document.getElementById('asmTbd').checked,
-      entTbd:document.getElementById('entTbd').checked
+      entTbd:document.getElementById('entTbd').checked,
+      conjuntoName
     }));
   }catch{}
+}
+
+function updateConjuntoDisplay(){
+  const el=document.getElementById('conjuntoText');
+  if(el) el.textContent=conjuntoName||'Toca para agregar nombre del conjunto';
+}
+
+function editConjunto(){
+  const display=document.getElementById('conjuntoDisplay');
+  const inp=document.createElement('input');
+  inp.className='conjunto-input';
+  inp.value=conjuntoName;
+  inp.placeholder='Ej: Conjunto Macadamia';
+  display.replaceWith(inp);
+  inp.focus();
+  const done=()=>{
+    conjuntoName=inp.value.trim();
+    const newDiv=document.createElement('div');
+    newDiv.className='conjunto-name';
+    newDiv.id='conjuntoDisplay';
+    newDiv.onclick=editConjunto;
+    newDiv.innerHTML=`<span id="conjuntoText">${conjuntoName||'Toca para agregar nombre del conjunto'}</span> ✏️`;
+    inp.replaceWith(newDiv);
+    saveState();
+  };
+  inp.onblur=done;
+  inp.onkeydown=e=>{if(e.key==='Enter')inp.blur();};
 }
 
 function toggleTbd(which){
@@ -590,7 +627,10 @@ function exportImage(){
 
   // title
   ctx.fillStyle='#4ADE80';ctx.font='bold 11px sans-serif';ctx.fillText('PROPIEDAD HORIZONTAL · INFORME DE ESTADO',102,32);
-  ctx.fillStyle='#F0FDF4';ctx.font='bold 26px sans-serif';ctx.fillText('Administración Provisional',102,64);
+  ctx.fillStyle='#F0FDF4';ctx.font='bold 26px sans-serif';ctx.fillText('Administración Provisional',102,62);
+  if(conjuntoName){
+    ctx.fillStyle='#22C55E';ctx.font='bold 13px sans-serif';ctx.fillText('📍 '+conjuntoName,102,80);
+  }
 
   // date info right
   ctx.fillStyle='#2D6A3F';ctx.font='11px sans-serif';ctx.textAlign='right';ctx.fillText('Generado el '+now,W-32,28);
